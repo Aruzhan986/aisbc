@@ -2,59 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
+use App\Http\Requests\OrderRequest;
+use App\Services\OrderService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    protected $orderService;
+
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
     public function index()
     {
-        $orders = Order::all();
-        return view('orders.index', compact('orders'));
+        $orders = $this->orderService->getAllOrders();
+        return response()->json(['orders' => $orders]);
     }
 
-    public function create()
+    public function store(OrderRequest $request)
     {
-        return view('orders.create');
+        $order = $this->orderService->createOrder($request->all());
+        return response()->json($order, 201);
     }
 
-    public function store(Request $request)
+    public function show($id)
     {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'client_id' => 'required|exists:clients,id',
-            'dateBuy' => 'required|date',
-        ]);
-
-        Order::create($validated);
-        return redirect()->route('orders.index')->with('success', 'Order created successfully!');
+        $order = $this->orderService->getOrderById($id);
+        if ($order) {
+            return response()->json($order);
+        } else {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
     }
 
-    public function show(Order $order)
+    public function update(Request $request, $id)
     {
-        return view('orders.show', compact('order'));
+        $order = $this->orderService->updateOrder($request->all(), $id);
+        if ($order) {
+            return response()->json($order);
+        } else {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
     }
 
-    public function edit(Order $order)
+    public function destroy($id)
     {
-        return view('orders.edit', compact('order'));
-    }
-
-    public function update(Request $request, Order $order)
-    {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'client_id' => 'required|exists:clients,id',
-            'dateBuy' => 'required|date',
-        ]);
-
-        $order->update($validated);
-        return redirect()->route('orders.index')->with('success', 'Order updated successfully!');
-    }
-
-    public function destroy(Order $order)
-    {
-        $order->delete();
-        return redirect()->route('orders.index')->with('success', 'Order deleted successfully!');
+        $order = $this->orderService->getOrderById($id);
+        if ($order) {
+            $this->orderService->deleteOrder($id);
+            return response()->json(null, 204);
+        } else {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
     }
 }

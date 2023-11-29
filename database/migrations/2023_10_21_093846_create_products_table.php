@@ -10,18 +10,18 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up()
-{
-    Schema::create('products', function (Blueprint $table) {
-        $table->id();
-        $table->string('name', 50);
-        $table->integer('quantity');
-        $table->decimal('price', 10, 2);
-        $table->unsignedBigInteger('category_id');
-        $table->timestamps();
-
-        $table->foreign('category_id')->references('id')->on('categories');
-    });
-}
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('name', 50)->index(); 
+            $table->integer('quantity');
+            $table->decimal('price', 10, 2);
+            $table->unsignedBigInteger('category_id')->index(); 
+            $table->timestamps();
+            
+            $table->foreign('category_id')->references('id')->on('categories');
+        });
+    }
 
     /**
      * Reverse the migrations.

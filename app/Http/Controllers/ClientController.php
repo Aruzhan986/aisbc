@@ -2,68 +2,64 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
-use Illuminate\Http\Request;
+use App\Http\Requests\ClientRequest;
+use App\Services\ClientService;
+use Illuminate\Http\JsonResponse;
 
 class ClientController extends Controller
 {
-    // Display a listing of the clients.
+    protected $clientService;
+
+    public function __construct(ClientService $clientService)
+    {
+        $this->clientService = $clientService;
+    }
+
     public function index()
     {
-        $clients = Client::all();
-        return view('clients.index', compact('clients'));
+        $clients = $this->clientService->getAllClients();
+        return response()->json($clients, 200);
     }
 
-    // Show the form for creating a new client.
-    public function create()
+    public function show($id)
     {
-        return view('clients.create');
+        $client = $this->clientService->getClientById($id);
+        if (!$client) {
+            return response()->json(['message' => 'Client not found'], 404);
+        }
+        return response()->json($client, 200);
     }
 
-    // Store a newly created client in the database.
-    public function store(Request $request)
+    public function store(ClientRequest $request)
     {
-        $validated = $request->validate([
-            'firstName' => 'required|string|max:50',
-            'lastName' => 'required|string|max:50',
-        ]);
-
-        Client::create($validated);
-        return redirect()->route('clients.index')->with('success', 'Client created successfully!');
+        $client = $this->clientService->createClient($request->validated());
+        return response()->json($client, 201);
     }
 
-    // Display the specified client.
-    public function show(Client $client)
+    public function update(ClientRequest $request, $id)
     {
-        return view('clients.show', compact('client'));
+        $client = $this->clientService->updateClient($request->validated(), $id);
+        if (!$client) {
+            return response()->json(['error' => 'Client not found'], 404);
+        }
+        return response()->json($client, 200);
     }
 
-    // Show the form for editing the specified client.
-    public function edit(Client $client)
+    public function destroy($id)
     {
-        return view('clients.edit', compact('client'));
+        $client = $this->clientService->deleteClient($id);
+        if (!$client) {
+            return response()->json(['message' => 'Client not found'], 404);
+        }
+        return response()->json(['message' => 'Client deleted successfully'], 200);
     }
 
-    // Update the specified client in the database.
-    public function update(Request $request, Client $client)
+    public function restore($id)
     {
-        $validated = $request->validate([
-            'firstName' => 'required|string|max:50',
-            'lastName' => 'required|string|max:50',
-        ]);
-
-        $client->update($validated);
-        return redirect()->route('clients.index')->with('success', 'Client updated successfully!');
-    }
-
-    // Remove the specified client from the database.
-    public function destroy(Client $client)
-    {
-        $client->delete();
-        return redirect()->route('clients.index')->with('success', 'Client deleted successfully!');
-    }
-
-    public function indexAjax() {
-        return view('clients.partial_index');
+        $client = $this->clientService->restoreClient($id);
+        if (!$client) {
+            return response()->json(['message' => 'Client not found'], 404);
+        }
+        return response()->json(['message' => 'Client restored successfully'], 200);
     }
 }

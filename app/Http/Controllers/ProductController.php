@@ -2,68 +2,56 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Http\Requests\ProductRequest;
+use App\Services\ProductService;
+
 
 class ProductController extends Controller
 {
-    // Display a listing of the products.
+    protected $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     public function index()
     {
-        $products = Product::all();
-        return view('products.index', compact('products'));
+        $products = $this->productService->getAllProducts();
+        return response()->json($products);
     }
 
-    // Show the form for creating a new product.
-    public function create()
+    public function store(ProductRequest $request)
     {
-        return view('products.create');
+        $product = $this->productService->createProduct($request->validated());
+        return response()->json($product, 201);
     }
 
-    // Store a newly created product in the database.
-    public function store(Request $request)
+    public function show($id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50',
-            'quantity' => 'required|integer',
-            'price' => 'required|numeric',
-            'category_id' => 'required|exists:categories,id',
-        ]);
-
-        Product::create($validated);
-        return redirect()->route('products.index')->with('success', 'Product created successfully!');
+        $product = $this->productService->getProductById($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        return response()->json($product);
     }
 
-    // Display the specified product.
-    public function show(Product $product)
+    public function update(ProductRequest $request, $id)
     {
-        return view('products.show', compact('product'));
+        $product = $this->productService->updateProduct($request->validated(), $id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        return response()->json($product);
     }
 
-    // Show the form for editing the specified product.
-    public function edit(Product $product)
+    public function destroy($id)
     {
-        return view('products.edit', compact('product'));
-    }
-
-    // Update the specified product in the database.
-    public function update(Request $request, Product $product)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50',
-            'quantity' => 'required|integer',
-            'price' => 'required|numeric',
-            'category_id' => 'required|exists:categories,id',
-        ]);
-
-        $product->update($validated);
-        return redirect()->route('products.index')->with('success', 'Product updated successfully!');
-    }
-
-    // Remove the specified product from the database.
-    public function destroy(Product $product)
-    {
-        $product->delete();
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully!');
+        $product = $this->productService->getProductById($id);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+        $this->productService->deleteProduct($id);
+        return response()->json(null, 204);
     }
 }

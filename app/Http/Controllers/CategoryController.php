@@ -2,62 +2,73 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
-use Illuminate\Http\Request;
+use App\Http\Requests\CategoryRequest;
+use App\Services\CategoryService;
+use Illuminate\Http\JsonResponse;
 
 class CategoryController extends Controller
 {
-    // Display a listing of the categories.
+    protected $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     public function index()
     {
-        $categories = Category::all();
-        return view('categories.index', compact('categories'));
+        $categories = $this->categoryService->getAllCategories();
+        return response()->json($categories, 200);
     }
 
-    // Show the form for creating a new category.
-    public function create()
+    public function store(CategoryRequest $request)
     {
-        return view('categories.create');
+        $category = $this->categoryService->createCategory($request->validated());
+        return response()->json($category, 201);
     }
 
-    // Store a newly created category in the database.
-    public function store(Request $request)
+    public function show($id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:categories,name',
-        ]);
-
-        Category::create($validated);
-        return redirect()->route('categories.index')->with('success', 'Category created successfully!');
+        $category = $this->categoryService->getCategoryById($id);
+        if (!$category) {
+            return response()->json(['error' => 'Category not found'], 404);
+        }
+        return response()->json($category, 200);
     }
 
-    // Display the specified category.
-    public function show(Category $category)
+    public function update(CategoryRequest $request, $id)
     {
-        return view('categories.show', compact('category'));
+        $category = $this->categoryService->updateCategory($request->validated(), $id);
+        if (!$category) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+        return response()->json($category, 200);
     }
 
-    // Show the form for editing the specified category.
-    public function edit(Category $category)
+    public function destroy($id)
     {
-        return view('categories.edit', compact('category'));
+        $category = $this->categoryService->deleteCategory($id);
+        if (!$category) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+        return response()->json(['message' => 'Category deleted'], 200);
     }
 
-    // Update the specified category in the database.
-    public function update(Request $request, Category $category)
+    public function trashed()
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:categories,name,' . $category->id,
-        ]);
-
-        $category->update($validated);
-        return redirect()->route('categories.index')->with('success', 'Category updated successfully!');
+        $categories = $this->categoryService->getTrashedCategories();
+        return response()->json($categories, 200);
     }
 
-    // Remove the specified category from the database.
-    public function destroy(Category $category)
+    public function restore($id)
     {
-        $category->delete();
-        return redirect()->route('categories.index')->with('success', 'Category deleted successfully!');
+        $category = $this->categoryService->restoreCategory($id);
+        return response()->json(['message' => 'Category restored'], 200);
+    }
+    
+    public function forceDelete($id)
+    {
+        $category = $this->categoryService->forceDeleteCategory($id);
+        return response()->json(['message' => 'Category permanently deleted'], 200);
     }
 }
