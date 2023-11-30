@@ -24,8 +24,8 @@ class OrderService
                     'product_name' => $order->product->name,
                     'product_price' => $order->product->price,
                     'category' => [
-                        'category_id' => $order->product->category->id,
-                        'category_name' => $order->product->category->name,
+                        'category_id' => $order->product->category_id,
+                        'category_name' => $order->product->category_name,
                     ],
                 ],
             ];
