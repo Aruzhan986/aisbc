@@ -14,10 +14,11 @@ class ProductRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:50',
-            'quantity' => 'required|integer',
-            'price' => 'required|decimal:10,2',
-            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|integer|exists:categories,id',
+            'photo_path' => 'nullable|file|image|max:2048', 
+
         ];
     }
 }

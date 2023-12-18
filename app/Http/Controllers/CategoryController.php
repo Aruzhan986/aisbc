@@ -2,73 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Http\Requests\CategoryRequest;
-use App\Services\CategoryService;
-use Illuminate\Http\JsonResponse;
 
 class CategoryController extends Controller
 {
-    protected $categoryService;
-
-    public function __construct(CategoryService $categoryService)
-    {
-        $this->categoryService = $categoryService;
-    }
-
     public function index()
     {
-        $categories = $this->categoryService->getAllCategories();
-        return response()->json($categories, 200);
+        return Category::all();
     }
 
     public function store(CategoryRequest $request)
     {
-        $category = $this->categoryService->createCategory($request->validated());
-        return response()->json($category, 201);
+        return Category::create($request->validated());
     }
 
-    public function show($id)
+    public function show(Category $category)
     {
-        $category = $this->categoryService->getCategoryById($id);
-        if (!$category) {
-            return response()->json(['error' => 'Category not found'], 404);
-        }
-        return response()->json($category, 200);
+        return $category;
     }
 
-    public function update(CategoryRequest $request, $id)
+    public function update(CategoryRequest $request, Category $category)
     {
-        $category = $this->categoryService->updateCategory($request->validated(), $id);
-        if (!$category) {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
-        return response()->json($category, 200);
+        $category->update($request->validated());
+        return $category;
     }
 
-    public function destroy($id)
+    public function destroy(Category $category)
     {
-        $category = $this->categoryService->deleteCategory($id);
-        if (!$category) {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
-        return response()->json(['message' => 'Category deleted'], 200);
-    }
-
-    public function trashed()
-    {
-        $categories = $this->categoryService->getTrashedCategories();
-        return response()->json($categories, 200);
-    }
-
-    public function restore($id)
-    {
-        $category = $this->categoryService->restoreCategory($id);
-        return response()->json(['message' => 'Category restored'], 200);
-    }
-    
-    public function forceDelete($id)
-    {
-        $category = $this->categoryService->forceDeleteCategory($id);
-        return response()->json(['message' => 'Category permanently deleted'], 200);
+        $category->delete();
+        return response()->json(null, 204);
     }
 }
+

@@ -9,17 +9,16 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id')->index(); 
-            $table->unsignedBigInteger('client_id')->index(); 
-            $table->datetime('dateBuy');
-            $table->timestamps();
-            
-            $table->foreign('product_id')->references('id')->on('products');
+            $table->unsignedBigInteger('client_id');
             $table->foreign('client_id')->references('id')->on('clients');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('products');
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 

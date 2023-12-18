@@ -2,64 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use App\Http\Requests\ClientRequest;
-use App\Services\ClientService;
-use Illuminate\Http\JsonResponse;
 
 class ClientController extends Controller
 {
-    protected $clientService;
-
-    public function __construct(ClientService $clientService)
-    {
-        $this->clientService = $clientService;
-    }
-
     public function index()
     {
-        $clients = $this->clientService->getAllClients();
-        return response()->json($clients, 200);
-    }
-
-    public function show($id)
-    {
-        $client = $this->clientService->getClientById($id);
-        if (!$client) {
-            return response()->json(['message' => 'Client not found'], 404);
-        }
-        return response()->json($client, 200);
+        return Client::all();
     }
 
     public function store(ClientRequest $request)
     {
-        $client = $this->clientService->createClient($request->validated());
-        return response()->json($client, 201);
+        return Client::create($request->validated());
     }
 
-    public function update(ClientRequest $request, $id)
+    public function show(Client $client)
     {
-        $client = $this->clientService->updateClient($request->validated(), $id);
-        if (!$client) {
-            return response()->json(['error' => 'Client not found'], 404);
-        }
-        return response()->json($client, 200);
+        return $client;
     }
 
-    public function destroy($id)
+    public function update(ClientRequest $request, Client $client)
     {
-        $client = $this->clientService->deleteClient($id);
-        if (!$client) {
-            return response()->json(['message' => 'Client not found'], 404);
-        }
-        return response()->json(['message' => 'Client deleted successfully'], 200);
+        $client->update($request->validated());
+        return $client;
     }
 
-    public function restore($id)
+    public function destroy(Client $client)
     {
-        $client = $this->clientService->restoreClient($id);
-        if (!$client) {
-            return response()->json(['message' => 'Client not found'], 404);
-        }
-        return response()->json(['message' => 'Client restored successfully'], 200);
+        $client->delete();
+        return response()->json(null, 204);
     }
 }

@@ -9,17 +9,17 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 50)->index(); 
-            $table->integer('quantity');
-            $table->decimal('price', 10, 2);
-            $table->unsignedBigInteger('category_id')->index(); 
-            $table->timestamps();
-            
+            $table->string('name');
+            $table->text('description');
+            $table->unsignedBigInteger('category_id');
             $table->foreign('category_id')->references('id')->on('categories');
+            $table->string('photo_path')->nullable(); 
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 

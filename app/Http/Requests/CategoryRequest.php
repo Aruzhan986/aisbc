@@ -8,14 +8,13 @@ class CategoryRequest extends FormRequest
 {
     public function authorize()
     {
-        return true; 
+        return true;
     }
 
     public function rules()
     {
         return [
-            'name' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
         ];
     }
 }
-

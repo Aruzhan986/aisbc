@@ -2,56 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Http\Requests\ProductRequest;
-use App\Services\ProductService;
-
 
 class ProductController extends Controller
 {
-    protected $productService;
-
-    public function __construct(ProductService $productService)
-    {
-        $this->productService = $productService;
-    }
-
     public function index()
-    {
-        $products = $this->productService->getAllProducts();
-        return response()->json($products);
-    }
+{
+    return Product::with('category')->get();
+}
+
 
     public function store(ProductRequest $request)
     {
-        $product = $this->productService->createProduct($request->validated());
-        return response()->json($product, 201);
+        return Product::create($request->validated());
     }
 
-    public function show($id)
+    public function show(Product $product)
     {
-        $product = $this->productService->getProductById($id);
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-        return response()->json($product);
+        return $product;
     }
 
-    public function update(ProductRequest $request, $id)
+    public function update(ProductRequest $request, Product $product)
     {
-        $product = $this->productService->updateProduct($request->validated(), $id);
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-        return response()->json($product);
+        $product->update($request->validated());
+        return $product;
     }
 
-    public function destroy($id)
+    public function destroy(Product $product)
     {
-        $product = $this->productService->getProductById($id);
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-        $this->productService->deleteProduct($id);
+        $product->delete();
         return response()->json(null, 204);
     }
 }
